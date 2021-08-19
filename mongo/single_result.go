@@ -12,6 +12,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/operation"
 )
 
 // ErrNoDocuments is returned by SingleResult methods when the operation that created the SingleResult did not return
@@ -26,6 +27,7 @@ type SingleResult struct {
 	cur *Cursor
 	rdr bson.Raw
 	reg *bsoncodec.Registry
+	leo *operation.LastErrorObject
 }
 
 // Decode will unmarshal the document represented by this SingleResult into v. If there was an error from the operation
@@ -60,6 +62,16 @@ func (sr *SingleResult) DecodeBytes() (bson.Raw, error) {
 		return nil, sr.err
 	}
 	return sr.rdr, nil
+}
+
+// For the FindOneAndUpdate, FindOneAndReplace, FindOneAndDelete results
+// LastErrorObject will return the object containing information about updates and upserts
+// see https://docs.mongodb.com/manual/reference/command/findAndModify/#upsert--true
+func (sr *SingleResult) LastErrorObject() (*operation.LastErrorObject, error) {
+	if sr.err != nil {
+		return nil, sr.err
+	}
+	return sr.leo, nil
 }
 
 // setRdrContents will set the contents of rdr by iterating the underlying cursor if necessary.
