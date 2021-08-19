@@ -1360,7 +1360,8 @@ func (coll *Collection) findAndModify(ctx context.Context, op *operation.FindAnd
 		return &SingleResult{err: err}
 	}
 
-	return &SingleResult{rdr: bson.Raw(op.Result().Value), reg: coll.registry}
+	res := op.Result()
+	return &SingleResult{rdr: bson.Raw(res.Value), leo: &res.LastErrorObject, reg: coll.registry}
 }
 
 // FindOneAndDelete executes a findAndModify command to delete at most one document in the collection. and returns the
